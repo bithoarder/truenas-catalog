@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: retroplayer
+  labels:
+    app.kubernetes.io/name: retroplayer
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: retroplayer
+  template:
+    metadata:
+      name: retroplayer
+      labels:
+        app.kubernetes.io/name: retroplayer
+      annotations:
+        k8s.v1.cni.cncf.io/networks: retroplayer
+    spec:
+      containers:
+        - name: retroplayer
+          image: registry.bitheap.net/retroplayer:latest
+          imagePullPolicy: Always
+          env:
+            - name: DB
+              value: postgres://{{.Values.db.user}}:{{.Values.db.pass}}@postgres.bitheap.net:5432/retroplayer?sslmode=disable
+            - name: GODEBUG
+              value: netdns=go+2
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080
+              hostPort: 8080
+#            - protocol: UDP
+#              containerPort: 1900
+#              hostPort: 1900
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          hostPath:
+            path: /mnt/pool/shares/stuff/retroplayer
+---
+apiVersion: k8s.cni.cncf.io/v1
+kind: NetworkAttachmentDefinition
+metadata:
+  name: retroplayer
+spec:
+  config: '{
+    "cniVersion": "0.3.1",
+    "name": "retroplayer",
+    "type": "bridge",
+    "bridge": "br0",
+    "ipam": {"type": "dhcp"}
+  }'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: retroplayer
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+#    - port: 1900
+#      targetPort: 1900
+#      protocol: UDP
+#      name: "1900"
+  selector:
+    app.kubernetes.io/name: retroplayer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: retroplayer
+spec:
+  rules:
+    - host: retroplayer.bitheap.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: retroplayer
+                port:
+                  name: http
