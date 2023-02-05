@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  labels:
+    app.kubernetes.io/name: registry
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: registry
+  template:
+    metadata:
+      name: registry
+      labels:
+        app.kubernetes.io/name: registry
+    spec:
+      containers:
+        - name: registry
+          image: registry:2
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/registry
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 5000
+      volumes:
+        - name: data
+          hostPath:
+            path: /mnt/pool/service/registry/data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+spec:
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: registry
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: registry
+spec:
+  rules:
+    - host: registry.bitheap.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: registry
+                port:
+                  name: http
