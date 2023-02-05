@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: hass-ingress
+subsets:
+  - addresses:
+      - ip: 192.168.0.19
+    ports:
+      - port: 80
+        name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hass-ingress
+spec:
+  ipFamilyPolicy: SingleStack
+  ports:
+    - port: 80
+      targetPort: 443
+      protocol: TCP
+      name: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hass-ingress
+#  annotations:
+#    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+#    traefik.ingress.kubernetes.io/router.middlewares: default-chain-basic@kubernetescrd
+#    traefik.frontend.passHostHeader: "false"
+spec:
+  rules:
+    - host: hass.bitheap.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hass-ingress
+                port:
+                  name: http
