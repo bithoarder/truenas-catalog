@@ -1,0 +1,21 @@
+groups:
+  - name: User
+    description: User
+questions:
+  - variable: user
+    group: User
+    label: User
+    schema:
+      additional_attrs: true
+      type: dict
+      attrs:
+        - variable: name
+          label: Username
+          schema:
+            type: string
+            required: true
+        - variable: pass
+          label: Password
+          schema:
+            type: string
+            required: true
