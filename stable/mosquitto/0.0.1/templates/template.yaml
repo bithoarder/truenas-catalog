@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  labels: 
+    app.kubernetes.io/name: mosquitto
+spec: 
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: 
+      app.kubernetes.io/name: mosquitto
+  template: 
+    metadata:
+      name: mosquitto
+      labels: 
+        app.kubernetes.io/name: mosquitto
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:1.6
+          imagePullPolicy: IfNotPresent
+          volumeMounts: 
+            - name: data
+              mountPath: /mosquitto/data
+          ports:
+          - name: mqtt
+            protocol: TCP
+            containerPort: 1883
+      volumes:
+        - name: data
+          hostPath:
+            path: /mnt/pool/service/mosquitto/data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+  labels:
+    app.kubernetes.io/name: mosquitto
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 1883
+      targetPort: mqtt
+  selector:
+    app.kubernetes.io/name: mosquitto
