@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zwavejs
+  labels: 
+    app.kubernetes.io/name: zwavejs
+spec: 
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: 
+      app.kubernetes.io/name: zwavejs
+  template:
+    metadata:
+      name: zwavejs
+      labels: 
+        app.kubernetes.io/name: zwavejs
+    spec:
+      containers:
+        - name: zwavejs
+          # https://hub.docker.com/r/zwavejs/zwave-js-ui/tags
+          image: zwavejs/zwave-js-ui:8.8.2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+            #runAsUser:
+            #runAsGroup:
+          volumeMounts:
+            - name: config
+              mountPath: /usr/src/app/store
+            - name: usb
+              mountPath: /dev/ttyACM0
+          ports:
+          - name: http
+            protocol: TCP
+            containerPort: 8091
+          - name: websock
+            protocol: TCP
+            containerPort: 3000
+      volumes:
+        - name: config
+          hostPath:
+            path: /mnt/pool/service/zwavejs/config
+        - name: usb
+          hostPath:
+            path: /dev/serial/by-id/usb-0658_0200-if00
+            type: CharDevice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zwavejs
+  labels:
+    app.kubernetes.io/name: zwavejs
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: zwavejs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zwavejs-api
+  labels:
+    app.kubernetes.io/name: zwavejs
+spec:
+  type: LoadBalancer
+  ports:
+    - name: websock
+      port: 3000
+      targetPort: websock
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: zwavejs
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zwavejs
+spec:
+  rules:
+    - host: zwavejs.bitheap.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zwavejs
+                port:
+                  name: http
