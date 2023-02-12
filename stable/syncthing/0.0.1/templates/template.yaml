@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syncthing
+  labels:
+    app.kubernetes.io/name: syncthing
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: syncthing
+  template:
+    metadata:
+      name: syncthing
+      labels:
+        app.kubernetes.io/name: syncthing
+    spec:
+      #hostname: test
+      containers:
+        # https://hub.docker.com/r/syncthing/syncthing/tags
+        - name: syncthing
+          image: syncthing/syncthing:1.23
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: config
+              mountPath: /var/syncthing
+            - name: shares
+              mountPath: /mnt/shares
+            - name: backup
+              mountPath: /mnt/backup
+          ports:
+            - protocol: TCP
+              containerPort: 8384 # Web UI
+            - protocol: TCP
+              containerPort: 22000 # TCP file transfers
+            - protocol: UDP
+              containerPort: 22000 # QUIC file transfers
+            - protocol: UDP
+              containerPort: 21027 # Receive local discovery broadcasts
+          env:
+            - name: PUID
+              value: "0"
+            - name: PGID
+              value: "0"
+      volumes:
+        - name: config
+          hostPath:
+            path: /mnt/pool/service/syncthing/config
+        - name: shares
+          hostPath:
+            path: /mnt/pool/shares
+        - name: backup
+          hostPath:
+            path: /mnt/pool/backup
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing-sync
+spec:
+  type: LoadBalancer
+  ports:
+    - name: transfer-tcp
+      protocol: TCP
+      port: 22000
+      targetPort: 22000
+    - name: transfer-udp
+      protocol: UDP
+      port: 22000
+      targetPort: 22000
+  selector:
+    app.kubernetes.io/name: syncthing
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing-web
+spec:
+  ipFamilyPolicy: SingleStack
+  ports:
+    - port: 80
+      targetPort: 8384
+      protocol: TCP
+      name: main
+  selector:
+    app.kubernetes.io/name: syncthing
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: syncthing
+spec:
+  rules:
+    - host: {{.Values.ingress.hostname}}
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: syncthing-web
+                port:
+                  number: 80

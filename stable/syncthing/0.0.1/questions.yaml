@@ -1,0 +1,26 @@
+groups:
+  - name: Ingress
+    description: Ingress settings
+questions:
+  - variable: ingress
+    group: Ingress
+    label: Ingress
+    schema:
+      additional_attrs: true
+      type: dict
+      attrs:
+        - variable: hostname
+          label: hostname
+          schema:
+            type: string
+            required: true
+            default: sync.bitheap.net
+
+portals:
+  open:
+    protocols:
+      - https
+    host:
+      - $variable-ingress.hostname
+    ports:
+      - "443"
