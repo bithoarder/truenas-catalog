@@ -35,10 +35,27 @@ spec:
             - name: http
               protocol: TCP
               containerPort: 80
+            - name: api
+              protocol: TCP
+              containerPort: 10080
       volumes:
         - name: data
           hostPath:
             path: /mnt/pool/service/unityaccelerator/data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: unityaccelerator-api
+spec:
+  type: LoadBalancer
+  ports:
+    - name: api
+      protocol: TCP
+      port: 10080
+      targetPort: 10080
+  selector:
+    app.kubernetes.io/name: unityaccelerator
 ---
 apiVersion: v1
 kind: Service
