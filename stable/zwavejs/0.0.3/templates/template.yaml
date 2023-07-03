@@ -20,7 +20,7 @@ spec:
       containers:
         - name: zwavejs
           # https://hub.docker.com/r/zwavejs/zwave-js-ui/tags
-          image: zwavejs/zwave-js-ui:8.13.1
+          image: zwavejs/zwave-js-ui:8.19.0
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
