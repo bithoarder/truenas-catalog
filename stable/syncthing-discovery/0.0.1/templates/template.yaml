@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syncthing-disc
+  labels:
+    app.kubernetes.io/name: syncthing-disc
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: syncthing-disc
+  template:
+    metadata:
+      name: syncthing-disc
+      labels:
+        app.kubernetes.io/name: syncthing-disc
+    spec:
+      #hostname: test
+      containers:
+        # https://hub.docker.com/r/syncthing/discosrv/tags
+        - name: syncthing-disc
+          image: syncthing/discosrv:1.26.0
+          imagePullPolicy: IfNotPresent
+          args:
+            - "-debug"
+            #- "-http"
+          volumeMounts:
+            - name: config
+              mountPath: /var/stdiscosrv
+          ports:
+            - protocol: TCP
+              containerPort: 8443
+      volumes:
+        - name: config
+          hostPath:
+            path: /mnt/pool/service/syncthing/disc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing-disc
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 8443
+      targetPort: 8443
+      protocol: TCP
+      name: main
+  selector:
+    app.kubernetes.io/name: syncthing-disc
+
+#---
+# not working, don't know how to pass the clients cert on
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: syncthing-disc
+#spec:
+#  ipFamilyPolicy: SingleStack
+#  ports:
+#    - port: 80
+#      targetPort: 8443
+#      protocol: TCP
+#      name: main
+#  selector:
+#    app.kubernetes.io/name: syncthing-disc
+#---
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  name: syncthing-disc
+#spec:
+#  rules:
+#    - host: {{.Values.ingress.hostname}}
+#      http:
+#        paths:
+#          - path: "/"
+#            pathType: Prefix
+#            backend:
+#              service:
+#                name: syncthing-disc
+#                port:
+#                  number: 80
