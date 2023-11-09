@@ -3,12 +3,13 @@ set -e
 
 for d in stable/* ; do
   cd "$d"
-  if ! git diff --quiet --exit-code -q .; then
+  if ! git -c core.fileMode=false diff --quiet --exit-code -q .; then
     # this assumes that there is only one version:
     CHART_FILE=`echo */Chart.yaml`
     CURRENT_VERSION=`cat "$CHART_FILE" | sed -n "s/version: \([0-9.]\+\)/\1/p"`
-    if [ \! -d "$CURRENT_VERSION" ] ; then
+    if [ ! -d "$CURRENT_VERSION" ] ; then
       echo "missing dir $d/$CURRENT_VERSION"
+      ls -al "$CURRENT_VERSION"
       exit 1
     fi
 
