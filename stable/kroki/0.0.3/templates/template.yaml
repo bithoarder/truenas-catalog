@@ -25,10 +25,20 @@ spec:
           env:
             - name: KROKI_MAX_URI_LENGTH
               value: "32768"
+            - name: KROKI_MERMAID_HOST
+              value: 127.0.0.1
           ports:
             - name: http
               protocol: TCP
               containerPort: 8000
+        - name: mermaid
+          # https://hub.docker.com/u/yuzutech
+          image: yuzutech/kroki-mermaid:0.23.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mermaid-http
+              protocol: TCP
+              containerPort: 8002
 ---
 apiVersion: v1
 kind: Service
