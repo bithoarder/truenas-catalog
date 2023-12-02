@@ -1,0 +1,26 @@
+groups:
+  - name: Hub
+    description: "Hubitat hub settings"
+questions:
+  - variable: hub
+    group: Hub
+    label: "Hubitat Hub"
+    schema:
+      additional_attrs: true
+      type: dict
+      attrs:
+        - variable: address
+          label: "Hub Address"
+          schema:
+            type: string
+            required: true
+        - variable: username
+          label: "Username"
+          schema:
+            type: string
+            required: true
+        - variable: password
+          label: "Password"
+          schema:
+            type: string
+            required: true

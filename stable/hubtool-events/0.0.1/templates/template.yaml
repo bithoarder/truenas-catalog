@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hubtool-events
+  labels:
+    app.kubernetes.io/name: hubtool-events
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: hubtool-events
+  template:
+    metadata:
+      name: hubtool-events
+      labels:
+        app.kubernetes.io/name: hubtool-events
+    spec:
+      containers:
+        - name: hubtool-events
+          image: registry.bitheap.net/hubtool-events:latest
+          imagePullPolicy: Always
+          args:
+            - events
+            - "--hub-url={{.Values.hub.address}}"
+            - "--username={{.Values.hub.username}}"
+            - "--password={{.Values.hub.password}}"
