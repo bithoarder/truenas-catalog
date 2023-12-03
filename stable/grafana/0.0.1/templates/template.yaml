@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels: 
+    app.kubernetes.io/name: grafana
+spec: 
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: 
+      app.kubernetes.io/name: grafana
+  template: 
+    metadata:
+      name: grafana
+      labels: 
+        app.kubernetes.io/name: grafana
+    spec:
+      containers:
+        - name: grafana
+          # https://hub.docker.com/r/grafana/grafana/tags
+          image: "grafana/grafana:10.2.2"
+          imagePullPolicy: IfNotPresent
+          volumeMounts: 
+            - name: data
+              mountPath: /var/lib/grafana
+          ports:
+          #- name: nats
+          #  protocol: TCP
+          #  containerPort: 4222
+          - name: http
+            protocol: TCP
+            containerPort: 3000
+      volumes:
+        - name: data
+          hostPath:
+            path: /mnt/pool/service/grafana/data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  #ipFamilyPolicy: SingleStack
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: grafana
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+spec:
+  rules:
+    - host: grafana.bitheap.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  name: http
