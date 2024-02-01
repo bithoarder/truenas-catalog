@@ -1,0 +1,21 @@
+groups:
+  - name: Database
+    description: "Database settings"
+questions:
+  - variable: db
+    group: Database
+    label: "Database"
+    schema:
+      additional_attrs: true
+      type: dict
+      attrs:
+        - variable: user
+          label: "username"
+          schema:
+            type: string
+            required: true
+        - variable: pass
+          label: "password"
+          schema:
+            type: string
+            required: true

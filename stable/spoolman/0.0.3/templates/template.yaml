@@ -30,6 +30,8 @@ spec:
               value: DEBUG
             - name: TZ
               value: Europe/Copenhagen
+            - name: SPOOLMAN_PORT
+              value: "8000"
             - name: SPOOLMAN_DB_TYPE
               value: postgres
             - name: SPOOLMAN_DB_HOST
@@ -39,9 +41,9 @@ spec:
             - name: SPOOLMAN_DB_NAME
               value: spoolman
             - name: SPOOLMAN_DB_USERNAME
-              value: spoolman
+              value: {{.Values.db.user | quote}}
             - name: SPOOLMAN_DB_PASSWORD
-              value: spoolman
+              value: {{.Values.db.pass | quote}}
           ports:
             - name: http
               protocol: TCP
