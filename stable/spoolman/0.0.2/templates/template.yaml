@@ -19,8 +19,8 @@ spec:
     spec:
       containers:
         - name: spoolman
-          # https://hub.docker.com/u/yuzutech
-          image: ghcr.io/donkie/spoolman:0.15.0
+          # https://github.com/Donkie/Spoolman/pkgs/container/spoolman
+          image: ghcr.io/donkie/spoolman:0.16.0
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: data
