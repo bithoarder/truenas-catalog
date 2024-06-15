@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+<apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spoolman
@@ -20,7 +20,7 @@ spec:
       containers:
         - name: spoolman
           # https://github.com/Donkie/Spoolman/pkgs/container/spoolman
-          image: ghcr.io/donkie/spoolman:0.16.0
+          image: ghcr.io/donkie/spoolman:0.18.1
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: data
